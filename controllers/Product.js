@@ -10,7 +10,7 @@ const createProduct = (req, res) => {
     instock: req.body.instock,
     category: req.body.category,
     images: req.body.images,
-
+    createdBy: req.body.createdBy
   });
 
   product.save((err, product) => {
