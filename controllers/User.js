@@ -1,7 +1,7 @@
 const User = require("../model/Users");
 
 const createUser = (req, res) => {
-  console.log(req.body);
+  // console.log(req.body);
   User.create(
     {
       firstName: req?.body?.firstName,
@@ -13,7 +13,7 @@ const createUser = (req, res) => {
     (err, User) => {
       if (err) {
         res.send(err);
-      } else res.json(User);
+      } else {res.json(User);}
     }
   );
 };
@@ -27,6 +27,39 @@ const getUsers = (req, res) => {
     res.json(users);
   });
 };
+
+const login = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    // Find the user by email
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    // Check if the password is correct
+     user.checkPassword(password, async (err, isMatch) => {
+      if (err) {
+        throw err;
+      }
+
+      if (!isMatch) {
+        return res.status(401).json({ message: 'Invalid email or password' });
+      }
+
+      // If the email and password are correct, generate a JWT token and send it in the response
+      const token = await user.generateAuthToken();
+      return res.json({ token:token,role:user.role });
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+
+};
+
 
 const loginUsers = (req, res) => {
   User.find(
@@ -81,6 +114,7 @@ const deleteUser = (req, res) => {
 module.exports = {
   getUsers,
   loginUsers,
+  login,
   createUser,
   updateUser,
   deleteUser,
